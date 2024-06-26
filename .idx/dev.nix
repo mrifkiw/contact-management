@@ -8,7 +8,14 @@
     pkgs.php82
     pkgs.php82Packages.composer
     pkgs.nodejs_20
+    pkgs.mariadb
   ];
+
+  services.mysql = {
+    enable = true;
+    package = pkgs.mariadb;
+  };
+
   # Sets environment variables in the workspace
   env = {};
   idx = {
