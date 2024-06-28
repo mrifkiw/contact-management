@@ -3,7 +3,7 @@
 namespace App\Models;
 
 
-use Illuminate\Database\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Model;
 
 class User extends Model
