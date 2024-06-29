@@ -6,13 +6,20 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Contacts extends Model
+class Contact extends Model
 {
     protected $table = "contacts";
     protected $primaryKey = "id";
     protected $keyType = "int";
     public $timestamps = true;
     public $incrementing = true;
+
+    protected $fillable = [
+        "first_name",
+        "last_name",
+        "email",
+        "phone"
+    ];
 
     public function user(): BelongsTo
     {
