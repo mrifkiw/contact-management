@@ -6,8 +6,9 @@ use App\Models\User;
 use Database\Seeders\UserSeeder;
 use Tests\TestCase;
 
-use function PHPUnit\Framework\assertEquals;
+
 use function PHPUnit\Framework\assertNotNull;
+use function PHPUnit\Framework\assertNull;
 
 class UserTest extends TestCase
 {
@@ -148,5 +149,98 @@ class UserTest extends TestCase
                     ]
                 ]
             ]);
+    }
+
+    public function testUpdatePasswordSuccess()
+    {
+        $this->seed(UserSeeder::class);
+        $oldUser = User::where("username", "test")->first();
+        $this->patch(
+            "/api/users/current",
+            [
+                "password" => "baru"
+            ],
+            [
+                "Authorization" => "test"
+            ]
+        )->assertStatus(200)
+            ->assertJson([
+                "data" => [
+                    "username" => "test",
+                    "name" => "test"
+                ]
+            ]);
+        $newUser = User::where("username", "test")->first();
+        self::assertNotEquals($oldUser->password, $newUser->password);
+    }
+
+    public function testUpdateNameSuccess()
+    {
+        $this->seed(UserSeeder::class);
+
+        $this->patch(
+            "/api/users/current",
+            [
+                "name" => "widadi"
+            ],
+            [
+                "Authorization" => "test"
+            ]
+        )->assertStatus(200)
+            ->assertJson([
+                "data" => [
+                    "username" => "test",
+                    "name" => "widadi"
+                ]
+            ]);
+    }
+
+    public function testUpdateFailed()
+    {
+        $this->seed(UserSeeder::class);
+
+        $this->patch(
+            "/api/users/current",
+            [
+                "name" => "widadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadiwidadi"
+            ],
+            [
+                "Authorization" => "test"
+            ]
+        )->assertStatus(400)
+            ->assertJson([
+                "errors" => [
+                    "name" => ["The name field must not be greater than 100 characters."],
+                ]
+            ]);
+    }
+
+    public function testLogoutSuccess()
+    {
+        $this->seed(UserSeeder::class);
+
+        $this->delete(uri: "/api/users/logout", headers: ["Authorization" => "test"])
+            ->assertStatus(200)
+            ->assertJson([
+                "data" => true
+            ]);
+        $user = User::where("username", "test")->first();
+        assertNull($user->token);
+    }
+
+    public function testLogoutFailed()
+    {
+        $this->seed(UserSeeder::class);
+        $this->delete(uri: "/api/users/logout", headers: ["Authorization" => "notauth"])
+            ->assertStatus(401)
+            ->assertJson([
+                "errors" => [
+                    "message" => [
+                        "unauthorized"
+                    ]
+                ]
+            ]);
+            $user = User::where("username", "test")->first();
+            assertNotNull($user->token);
     }
 }

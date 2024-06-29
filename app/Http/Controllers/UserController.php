@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UserLoginRequest;
 use App\Http\Requests\UserRegisterRequest;
+use App\Http\Requests\UserUpdateRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -54,9 +55,35 @@ class UserController extends Controller
         return  new UserResource($user);
     }
 
-    public function get(Request $request) : UserResource {
+    public function get(Request $request): UserResource
+    {
         $user = Auth::user();
-  
+
         return new UserResource($user);
+    }
+
+    public function update(UserUpdateRequest $request): UserResource
+    {
+        $data = $request->validated();
+        $user = User::where("username", Auth::id())->first();
+
+        if (isset($data["name"])) {
+            $user->name = $data["name"];
+        }
+        if (isset($data["password"])) {
+            $user->password = Hash::make($data["password"]);
+        }
+        $user->save();
+        return new UserResource($user);
+    }
+
+    public function logout(Request $request) {
+        $user = User::where("username", Auth::id())->first();
+        $user->token = null;
+        $user->save();
+
+        return response()->json([
+            "data" => true,
+        ])->setStatusCode(200);
     }
 }
