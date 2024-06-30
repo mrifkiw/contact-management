@@ -253,18 +253,39 @@ class AddressTest extends TestCase
 
         $contact = Contact::query()->limit(1)->first();
 
-        $url = "/api/contacts/" . $contact->id . "/addresses";
+        $url = "/api/contacts/" . $contact->id  . "/addresses";
 
         $this->get(uri: $url,  headers: [
             "Authorization" => "test"
         ])->assertStatus(200)
             ->assertJson([
                 "data" => [
-                   [ 'street' => 'test',
-                    'city' => 'test',
-                    'province' => 'test',
-                    'country' => 'test',
-                    'postal_code' => '11111']
+                    [
+                        'street' => 'test',
+                        'city' => 'test',
+                        'province' => 'test',
+                        'country' => 'test',
+                        'postal_code' => '11111'
+                    ]
+                ]
+            ]);
+    }
+    public function testListNotFound()
+    {
+        $this->seed([UserSeeder::class, ContactSeeder::class, AddressesSeeder::class]);
+
+        $contact = Contact::query()->limit(1)->first();
+
+        $url = "/api/contacts/" . ($contact->id + 1) . "/addresses";
+
+        $this->get(uri: $url,  headers: [
+            "Authorization" => "test"
+        ])->assertStatus(404)
+            ->assertJson([
+                "errors" => [
+                    "message" => [
+                        "contact not found"
+                    ]
                 ]
             ]);
     }
