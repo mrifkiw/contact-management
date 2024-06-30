@@ -10,6 +10,7 @@ use App\Models\Contact;
 use App\Models\User;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AddressController extends Controller
@@ -67,7 +68,7 @@ class AddressController extends Controller
         $contact = $this->getContact($user, $idContact);
         $address = $this->getAddress($contact, $idAddress);
 
-    
+
         return new AddressResource($address);
     }
 
@@ -84,5 +85,29 @@ class AddressController extends Controller
         $address->save();
 
         return new AddressResource($address);
+    }
+
+    public function delete(int $idContact, int $idAddress): JsonResponse
+    {
+        $user = Auth::user();
+
+        $contact = $this->getContact($user, $idContact);
+        $address = $this->getAddress($contact, $idAddress);
+
+        $address->delete();
+
+        return response()
+            ->json(["data" => true])
+            ->setStatusCode(200);
+    }
+
+    public function list(int $idContact): JsonResponse
+    {
+        $user = Auth::user();
+
+        $contact = $this->getContact($user, $idContact);
+        $addresses = Address::where("contact_id", $contact->id)->get();
+
+        return AddressResource::collection($addresses)->response()->setStatusCode(200);
     }
 }

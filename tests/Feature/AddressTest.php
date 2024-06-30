@@ -191,4 +191,81 @@ class AddressTest extends TestCase
                 ]
             ]);
     }
+
+    public function testDeleteSuccess()
+    {
+        $this->seed([UserSeeder::class, ContactSeeder::class, AddressesSeeder::class]);
+
+        $address = Address::query()->limit(1)->first();
+
+        $url = "/api/contacts/" . $address->contact_id . "/addresses/" . $address->id;
+
+        $this->delete(uri: $url,  headers: [
+            "Authorization" => "test"
+        ])->assertStatus(200)
+            ->assertJson([
+                "data" => true
+            ]);
+    }
+
+    public function testDeleteContactNotFound()
+    {
+        $this->seed([UserSeeder::class, ContactSeeder::class, AddressesSeeder::class]);
+
+        $address = Address::query()->limit(1)->first();
+
+        $url = "/api/contacts/" . ($address->contact_id + 1) . "/addresses/" . $address->id;
+
+        $this->delete(uri: $url,  headers: [
+            "Authorization" => "test"
+        ])->assertStatus(404)
+            ->assertJson([
+                "errors" => [
+                    "message" => [
+                        "contact not found"
+                    ]
+                ]
+            ]);
+    }
+    public function testDeleteAddressNotFound()
+    {
+        $this->seed([UserSeeder::class, ContactSeeder::class, AddressesSeeder::class]);
+
+        $address = Address::query()->limit(1)->first();
+
+        $url = "/api/contacts/" . $address->contact_id . "/addresses/" . ($address->id + 1);
+
+        $this->delete(uri: $url,  headers: [
+            "Authorization" => "test"
+        ])->assertStatus(404)
+            ->assertJson([
+                "errors" => [
+                    "message" => [
+                        "address not found"
+                    ]
+                ]
+            ]);
+    }
+
+    public function testListSuccess()
+    {
+        $this->seed([UserSeeder::class, ContactSeeder::class, AddressesSeeder::class]);
+
+        $contact = Contact::query()->limit(1)->first();
+
+        $url = "/api/contacts/" . $contact->id . "/addresses";
+
+        $this->get(uri: $url,  headers: [
+            "Authorization" => "test"
+        ])->assertStatus(200)
+            ->assertJson([
+                "data" => [
+                   [ 'street' => 'test',
+                    'city' => 'test',
+                    'province' => 'test',
+                    'country' => 'test',
+                    'postal_code' => '11111']
+                ]
+            ]);
+    }
 }
