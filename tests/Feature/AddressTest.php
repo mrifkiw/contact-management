@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Address;
 use App\Models\Contact;
+use Database\Seeders\AddressesSeeder;
 use Database\Seeders\ContactSeeder;
 use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -72,6 +74,61 @@ class AddressTest extends TestCase
             "postal_code" => "213432",
         ], ["Authorization" => "test"])
             ->assertStatus(404)
+            ->assertJson([
+                "errors" => [
+                    "message" => [
+                        "contact not found"
+                    ]
+                ]
+            ]);
+    }
+
+    public function testGetSuccess()
+    {
+        $this->seed([UserSeeder::class, ContactSeeder::class, AddressesSeeder::class]);
+
+        $address = Address::query()->limit(1)->first();
+
+        $url = "/api/contacts/" . $address->contact_id . "/addresses/" . $address->id;
+
+        $this->get($url, [
+            "Authorization" => "test"
+        ])->assertStatus(200)
+            ->assertJson([
+                "data" => [
+                    'street' => 'test',
+                    'city' => 'test',
+                    'province' => 'test',
+                    'country' => 'test',
+                    'postal_code' => '11111'
+                ]
+            ]);
+    }
+
+    public function testGetNotFound()
+    {
+        $this->seed([UserSeeder::class, ContactSeeder::class, AddressesSeeder::class]);
+
+        $address = Address::query()->limit(1)->first();
+
+        $urlWrongAddressId = "/api/contacts/" . $address->contact_id . "/addresses/" . ($address->id + 1);
+       
+        $urlWrongContactId = "/api/contacts/" . ($address->contact_id + 1) . "/addresses/" . $address->id;
+
+        $this->get($urlWrongAddressId, [
+            "Authorization" => "test"
+        ])->assertStatus(404)
+            ->assertJson([
+                "errors" => [
+                    "message" => [
+                        "address not found"
+                    ]
+                ]
+            ]);
+            
+        $this->get($urlWrongContactId, [
+            "Authorization" => "test"
+        ])->assertStatus(404)
             ->assertJson([
                 "errors" => [
                     "message" => [
